@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Central de Relacionamento — </title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --purple:#6B21A8;--purple-mid:#7C3AED;--purple-light:#A855F7;
+  --purple-xl:#F3E8FF;--purple-xxl:#FAF5FF;
+  --bg:#F8F7FC;--surface:#FFF;--surface2:#F3F0F9;
+  --border:#E5DFF5;--text:#1A1028;--text2:#6B5F8A;--text3:#A89CC8;
+  --green:#16A34A;--green-bg:#DCFCE7;
+  --red:#DC2626;--red-bg:#FEE2E2;
+  --orange:#EA580C;--orange-bg:#FEF3C7;
+  --blue:#2563EB;--blue-bg:#DBEAFE;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);}
+
+/* HEADER */
+.header{background:var(--purple);color:#fff;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(107,33,168,.3);}
+.header-left{display:flex;align-items:center;gap:16px;}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;}
+.logo-icon{width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.header-title{font-weight:600;font-size:14px;opacity:.9;border-left:1px solid rgba(255,255,255,.3);padding-left:16px;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.btn-refresh{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;font-family:inherit;}
+.btn-refresh:hover{background:rgba(255,255,255,.25);}
+.data-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:5px;}
+.data-badge .dot{width:6px;height:6px;border-radius:50%;background:#4ADE80;}
+
+/* PERIOD BAR */
+.period-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.period-label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
+.period-btns{display:flex;gap:6px;}
+.pbtn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s;font-family:inherit;}
+.pbtn:hover{border-color:var(--purple-light);color:var(--purple);}
+.pbtn.active{background:var(--purple);color:#fff;border-color:var(--purple);}
+.period-dates{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.period-dates input[type=date]{border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;font-family:inherit;color:var(--text);background:var(--surface2);}
+.btn-apply{background:var(--purple);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+/* TABS */
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;overflow-x:auto;}
+.tab{padding:14px 16px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:5px;}
+.tab:hover{color:var(--purple);}
+.tab.active{color:var(--purple);border-bottom-color:var(--purple);}
+
+.main{padding:20px 24px;max-width:1400px;margin:0 auto;}
+
+/* LOADER */
+.loader-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;gap:16px;}
+.spinner{width:44px;height:44px;border:3px solid var(--purple-xl);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loader-text{font-size:14px;color:var(--text2);font-weight:500;}
+
+/* SECTION */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.section-title{font-size:16px;font-weight:800;color:var(--text);}
+.section-period{font-size:12px;color:var(--text2);background:var(--purple-xl);padding:4px 10px;border-radius:20px;font-weight:600;}
+
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;transition:box-shadow .2s;}
+.card:hover{box-shadow:0 4px 16px rgba(107,33,168,.08);}
+.card-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:8px;}
+.card-value{font-size:24px;font-weight:800;color:var(--text);line-height:1;margin-bottom:4px;}
+.card-value.green{color:var(--green);}
+.card-value.red{color:var(--red);}
+.card-value.orange{color:var(--orange);}
+.card-sub{font-size:12px;color:var(--text3);}
+.card-wow{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:12px;font-weight:700;}
+.wow-up{color:var(--green);}
+.wow-down{color:var(--red);}
+.wow-eq{color:var(--text3);}
+
+/* WOW SECTION */
+.wow-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:20px;}
+.wow-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.wow-title::before{content:'▌';color:var(--purple);font-size:10px;}
+.wow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
+.wow-item{background:var(--surface2);border-radius:10px;padding:14px;}
+.wow-item-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;}
+.wow-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.wow-week{font-size:11px;color:var(--text3);}
+.wow-val{font-size:14px;font-weight:700;color:var(--text);}
+.wow-delta{font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.delta-up-good{background:var(--green-bg);color:var(--green);}
+.delta-down-bad{background:var(--red-bg);color:var(--red);}
+.delta-up-bad{background:var(--red-bg);color:var(--red);}
+.delta-down-good{background:var(--green-bg);color:var(--green);}
+.delta-neutral{background:var(--surface2);color:var(--text3);}
+
+/* CHARTS */
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.chart-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.chart-title::before{content:'▌';color:var(--purple);font-size:10px;}
+.chart-wrap{position:relative;height:220px;}
+
+/* TABLE */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;overflow-x:auto;}
+.table-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.table-title::before{content:'▌';color:var(--purple);font-size:10px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:var(--surface2);padding:8px 12px;text-align:left;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);border-bottom:1px solid var(--border);}
+td{padding:9px 12px;border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--purple-xxl);}
+
+.rep{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.rep-excelente{background:#F3E8FF;color:#7C3AED;}
+.rep-otimo{background:#DCFCE7;color:#16A34A;}
+.rep-bom{background:#DBEAFE;color:#2563EB;}
+.rep-regular{background:#FEF3C7;color:#B45309;}
+.rep-ruim{background:#FEE2E2;color:#DC2626;}
+
+.loja-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.loja-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text2);font-family:inherit;transition:all .15s;}
+.loja-btn.active{background:var(--purple);color:#fff;border-color:var(--purple);}
+
+.hidden{display:none!important;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--purple);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(107,33,168,.3);z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* SAUDE OPERACAO */
+.saude-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px;}
+.saude-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.saude-canal{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:12px;}
+.saude-metric{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);}
+.saude-metric:last-child{border-bottom:none;}
+.saude-metric-label{font-size:12px;color:var(--text2);}
+.saude-metric-value{font-size:13px;font-weight:700;color:var(--text);}
+.saude-metric-value.green{color:var(--green);}
+.saude-metric-value.red{color:var(--red);}
+.saude-metric-value.orange{color:var(--orange);}
+
+@media(max-width:768px){.charts{grid-template-columns:1fr;}.cards{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo"><div class="logo-icon">📊</div></div>
+    <div class="header-title">DASHBOARD — CENTRAL DE RELACIONAMENTO</div>
+  </div>
+  <div class="header-right">
+    <div class="data-badge" id="data-badge" style="display:none">
+      <span class="dot"></span><span id="badge-text">Google Sheets</span>
+    </div>
+    <button class="btn-refresh" id="btn-refresh" onclick="loadAll()">🔄 Atualizar</button>
+  </div>
+</div>
+
+<div class="period-bar" id="period-bar" style="display:none">
+  <span class="period-label">Período:</span>
+  <div class="period-btns">
+    <button class="pbtn" onclick="setPreset(7,this)">7 dias</button>
+    <button class="pbtn active" onclick="setPreset(15,this)">15 dias</button>
+    <button class="pbtn" onclick="setPreset(30,this)">30 dias</button>
+    <button class="pbtn" onclick="setPreset(0,this)">Tudo</button>
+  </div>
+  <div class="period-dates">
+    <input type="date" id="date-start">
+    <span style="color:var(--text3);font-size:12px">até</span>
+    <input type="date" id="date-end">
+    <button class="btn-apply" onclick="applyPeriod()">Aplicar</button>
+  </div>
+</div>
+
+<div class="tabs" id="tabs" style="display:none">
+  <div class="tab active" onclick="showTab('geral',this)">📊 Saúde da Operação</div>
+  <div class="tab" onclick="showTab('wow',this)">📅 Comparativo de Períodos</div>
+  <div class="tab" onclick="showTab('whatsapp',this)">💬 WhatsApp</div>
+  <div class="tab" onclick="showTab('voz',this)">📞 Voz</div>
+  <div class="tab" onclick="showTab('mktp',this)">🛒 Marketplace</div>
+  <div class="tab" onclick="showTab('ra',this)">⭐ Reclame Aqui</div>
+  <div class="tab" onclick="showTab('rs',this)">📱 Redes Sociais</div>
+</div>
+
+<div class="main" id="main-content">
+  <div class="loader-wrap" id="loader">
+    <div class="spinner"></div>
+    <div class="loader-text" id="loader-text">Carregando dados do Google Sheets...</div>
+  </div>
+
+  <div id="dashboard" class="hidden">
+
+    <!-- SAÚDE DA OPERAÇÃO -->
+    <div id="tab-geral">
+      <div class="section-header">
+        <div class="section-title">📊 Saúde da Operação</div>
+        <div class="section-period" id="geral-period"></div>
+      </div>
+      <!-- KPIs gerais -->
+      <div class="cards" id="geral-cards"></div>
+      <!-- Saúde por canal -->
+      <div class="saude-grid" id="saude-grid"></div>
+      <div class="charts">
+        <div class="chart-card"><div class="chart-title">Volume Total por Canal</div><div class="chart-wrap"><canvas id="geral-canal"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">CSAT por Canal (%)</div><div class="chart-wrap"><canvas id="geral-csat"></canvas></div></div>
+      </div>
+      <div class="charts">
+        <div class="chart-card"><div class="chart-title">Evolução Volume — WhatsApp e Voz</div><div class="chart-wrap"><canvas id="geral-evol"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">Evolução CSAT — WhatsApp e Voz</div><div class="chart-wrap"><canvas id="geral-evol-csat"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- COMPARATIVO DE PERÍODOS -->
+    <div id="tab-wow" class="hidden">
+      <div class="section-header">
+        <div class="section-title">📅 Comparativo de Períodos</div>
+        <div class="section-period" id="wow-period"></div>
+      </div>
+      <!-- Seletor de período comparativo -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;">Comparar:</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="wow-preset-btns">
+          <button class="pbtn active" onclick="setWowPreset(7,this)">7 dias</button>
+          <button class="pbtn" onclick="setWowPreset(15,this)">15 dias</button>
+          <button class="pbtn" onclick="setWowPreset(30,this)">30 dias</button>
+        </div>
+        <span style="font-size:12px;color:var(--text3);margin-left:4px;">ou personalizado:</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:12px;color:var(--text2);">Período A:</span>
+          <input type="date" id="wow-a-start" style="border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;font-family:inherit;background:var(--surface2);">
+          <span style="font-size:12px;color:var(--text3)">até</span>
+          <input type="date" id="wow-a-end" style="border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;font-family:inherit;background:var(--surface2);">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:12px;color:var(--text2);">vs Período B:</span>
+          <input type="date" id="wow-b-start" style="border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;font-family:inherit;background:var(--surface2);">
+          <span style="font-size:12px;color:var(--text3)">até</span>
+          <input type="date" id="wow-b-end" style="border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;font-family:inherit;background:var(--surface2);">
+        </div>
+        <button class="btn-apply" onclick="applyWowPeriod()">Comparar</button>
+      </div>
+      <div id="wow-content"></div>
+    </div>
+
+    <!-- WHATSAPP -->
+    <div id="tab-whatsapp" class="hidden">
+      <div class="section-header"><div class="section-title">💬 WhatsApp</div><div class="section-period" id="wp-period"></div></div>
+      <div class="cards" id="wp-cards"></div>
+      <div class="charts">
+        <div class="chart-card"><div class="chart-title">Volume de Entrada</div><div class="chart-wrap"><canvas id="wp-vol"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">CSAT (%)</div><div class="chart-wrap"><canvas id="wp-csat"></canvas></div></div>
+      </div>
+      <div class="charts">
+        <div class="chart-card"><div class="chart-title">TMA vs TME</div><div class="chart-wrap"><canvas id="wp-tma"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">Transbordo vs Tratados vs BOT</div><div class="chart-wrap"><canvas id="wp-trans"></canvas></div></div>
+      </div>
+      <div class="charts">
+        <div class="chart-card"><div class="chart-title">% Resolvidas pelo BOT</div><div class="chart-wrap"><canvas id="wp-bot"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">Top Ofensores — Entrega vs Cancelamento</div><div class="chart-wrap"><canvas id="wp-ofensores"></canvas></div></div>
+      </div>
+      <div class="table-card"><div class="table-title">Detalhamento Diário</div><table id="wp-table"></table></div>
+    </div>
+
+    <!-- VOZ -->
+    <div id="tab-voz" class="hidden">
+      <div class="section-header"><div class="section-title">📞 Voz</div><div class="section-period" id="voz-period"></div></div>
+      <div class="cards" id="voz-cards"></div>
+      <div class="charts">
+        <div class="chart-card"><div class="chart-title">Atendidas vs Abandonadas</div><div class="chart-wrap"><canvas id="voz-vol"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">Taxa de Abandono (%)</div><div class="chart-wrap"><canvas id="voz-ab"></canvas></div></div>
+      </div>
+      <div class="charts">
+        <div class="chart-card"><div class="chart-title">TMA vs TME (min)</div><div class="chart-wrap"><canvas id="voz-tma"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">CSAT (%)</div><div class="chart-wrap"><canvas id="voz-csat"></canvas></div></div>
+      </div>
+      <div class="table-card"><div class="table-title">Detalhamento Diário</div><table id="voz-table"></table></div>
+    </div>
+
+    <!-- MKTP -->
+    <div id="tab-mktp" class="hidden">
+      <div class="section-header"><div class="section-title">🛒 Marketplace</div><div class="section-period" id="mktp-period"></div></div>
+      <div class="loja-tabs" id="mktp-loja-tabs"></div>
+      <div class="cards" id="mktp-cards"></div>
+      <div class="charts">
+        <div class="chart-card"><div class="chart-title">Volume por Loja</div><div class="chart-wrap"><canvas id="mktp-vol"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">% Tratados por Loja</div><div class="chart-wrap"><canvas id="mktp-pct"></canvas></div></div>
+      </div>
+      <div class="table-card"><div class="table-title">Detalhamento</div><table id="mktp-table"></table></div>
+    </div>
+
+    <!-- RA -->
+    <div id="tab-ra" class="hidden">
+      <div class="section-header"><div class="section-title">⭐ Reclame Aqui</div><div class="section-period" id="ra-period"></div></div>
+      <div class="cards" id="ra-cards"></div>
+      <div class="charts">
+        <div class="chart-card"><div class="chart-title">Entrada vs Resolvidas</div><div class="chart-wrap"><canvas id="ra-vol"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">% Resolução</div><div class="chart-wrap"><canvas id="ra-pct"></canvas></div></div>
+      </div>
+      <div class="charts">
+        <div class="chart-card"><div class="chart-title">Reputação Semanal</div><div class="chart-wrap"><canvas id="ra-sem"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">Nota Média Mensal</div><div class="chart-wrap"><canvas id="ra-men"></canvas></div></div>
+      </div>
+      <div class="table-card"><div class="table-title">Detalhamento Diário</div><table id="ra-table"></table></div>
+    </div>
+
+    <!-- RS -->
+    <div id="tab-rs" class="hidden">
+      <div class="section-header"><div class="section-title">📱 Redes Sociais</div><div class="section-period" id="rs-period"></div></div>
+      <div class="cards" id="rs-cards"></div>
+      <div class="charts">
+        <div class="chart-card"><div class="chart-title">Volume de Entrada</div><div class="chart-wrap"><canvas id="rs-vol"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">% Tratados</div><div class="chart-wrap"><canvas id="rs-pct"></canvas></div></div>
+      </div>
+      <div class="table-card"><div class="table-title">Detalhamento Diário</div><table id="rs-table"></table></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────
+const SHEET_ID = '2PACX-1vQVyQ8qKeZVMsb6ipOBFjn03U1lVhVb4LWnHyvHqk8He7jKcrz8KZ1A6EYs0gsZaXRcCDw6wYfQXKAE';
+const GIDS = { whatsapp:'247084693', voz:'1853477334', mktp:'238957574', ra:'1096127052', raSemanal:'1968138723', raMensal:'1237355477', rs:'1849104056' };
+const csvUrl = gid => `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=${gid}&single=true&output=csv`;
+
+let DB = {}, PERIOD = {start:null,end:null}, currentTab = 'geral', mktpLojaAtiva = 'Todas';
+const charts = {};
+
+// ── CSV ───────────────────────────────────────────────────────────────────
+function splitCSV(line) {
+  const r=[]; let cur='',inQ=false;
+  for(const c of line){ if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){r.push(cur);cur='';}else cur+=c; }
+  return [...r,cur];
+}
+function parseCSV(text) {
+  const lines = text.trim().split('\n').filter(l=>l.trim());
+  if(lines.length<2) return [];
+  const hi = lines[0].includes('CANAL') ? 1 : 0;
+  const headers = splitCSV(lines[hi]).map(h=>h.replace(/^"|"$/g,'').trim());
+  const result = [];
+  for(let i=hi+1;i<lines.length;i++){
+    const vals = splitCSV(lines[i]);
+    if(!vals[0]?.trim()) continue;
+    const obj={};
+    headers.forEach((h,j)=>{ if(h) obj[h]=vals[j]?vals[j].replace(/^"|"$/g,'').trim():''; });
+    result.push(obj);
+  }
+  return result;
+}
+async function fetchSheet(gid) {
+  const r = await fetch(csvUrl(gid));
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  return parseCSV(await r.text());
+}
+
+// ── LOAD ──────────────────────────────────────────────────────────────────
+async function loadAll() {
+  const btn = document.getElementById('btn-refresh');
+  btn.textContent='⏳ Carregando...'; btn.style.opacity='.7'; btn.style.pointerEvents='none';
+  document.getElementById('loader').style.display='flex';
+  document.getElementById('dashboard').classList.add('hidden');
+  try {
+    const [wp,voz,mktp,ra,raSem,raMen,rs] = await Promise.all(Object.values(GIDS).map(fetchSheet));
+    DB = {whatsapp:wp,voz,mktp,ra,raSemanal:raSem,raMensal:raMen,rs};
+    initDashboard();
+    toast('✅ Dados atualizados!');
+  } catch(e) {
+    document.getElementById('loader').style.display='none';
+    toast('❌ Erro: '+e.message);
+  } finally {
+    btn.textContent='🔄 Atualizar'; btn.style.opacity=''; btn.style.pointerEvents='';
+  }
+}
+
+// ── DATE ──────────────────────────────────────────────────────────────────
+function parseDate(v) {
+  if(!v) return null;
+  const s=String(v).trim();
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(s)){ const[d,m,y]=s.split('/'); return new Date(`${y}-${m}-${d}T00:00:00`); }
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s);
+  return null;
+}
+const fmtShort = v=>{ const d=parseDate(v); return d?`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`:v; };
+const fmtFull  = v=>{ const d=parseDate(v); return d?d.toLocaleDateString('pt-BR'):v; };
+function inPeriod(v) {
+  if(!PERIOD.start||!PERIOD.end) return true;
+  const d=parseDate(v); if(!d) return true;
+  return d>=new Date(PERIOD.start+'T00:00:00')&&d<=new Date(PERIOD.end+'T23:59:59');
+}
+
+// ── MATH ──────────────────────────────────────────────────────────────────
+const n  = v => parseFloat(String(v).replace(',','.')) || 0;
+// Parse HH:MM:SS or MM:SS to minutes
+function parseDuration(v) {
+  if(!v) return 0;
+  const s = String(v).trim();
+  const parts = s.split(':').map(Number);
+  if(parts.length === 3) return parts[0]*60 + parts[1] + parts[2]/60; // HH:MM:SS
+  if(parts.length === 2) return parts[0] + parts[1]/60; // MM:SS
+  return parseFloat(s) || 0;
+}
+function fmtDuration(mins) {
+  if(!mins) return '0min';
+  if(mins < 60) return f1(mins)+'min';
+  const h = Math.floor(mins/60), m = Math.round(mins%60);
+  return `${h}h${m > 0 ? m+'min' : ''}`;
+}
+// Parse % string like "51%" to number
+function parsePct(v) { return parseFloat(String(v).replace('%','').replace(',','.')) || 0; }
+const avg= a => a.length ? a.reduce((s,v)=>s+v,0)/a.length : 0;
+const sum= a => a.reduce((s,v)=>s+v,0);
+const f1 = v => (typeof v==='number'?v:parseFloat(v)||0).toFixed(1);
+const fP = v => f1(v)+'%';
+
+// ── WoW HELPERS ───────────────────────────────────────────────────────────
+// ── WoW PERIOD STATE ────────────────────────────────────────────────────
+let WOW = { days: 7, aStart: null, aEnd: null, bStart: null, bEnd: null };
+
+function getRowsInRange(rows, dateField, start, end) {
+  const s = new Date(start+'T00:00:00'), e = new Date(end+'T23:59:59');
+  return rows.filter(r => { const d=parseDate(r[dateField]); return d&&d>=s&&d<=e; });
+}
+
+function setWowPreset(days, btn) {
+  document.querySelectorAll('#wow-preset-btns .pbtn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  WOW.days = days;
+  // Auto-calculate A and B based on max date in data
+  const dates = getAllDates();
+  if(!dates.length) return;
+  const maxDate = new Date(Math.max(...dates));
+  const aEnd = maxDate.toISOString().slice(0,10);
+  const aStart = new Date(maxDate.getTime()-(days-1)*86400000).toISOString().slice(0,10);
+  const bEnd = new Date(new Date(aStart).getTime()-86400000).toISOString().slice(0,10);
+  const bStart = new Date(new Date(bEnd).getTime()-(days-1)*86400000).toISOString().slice(0,10);
+  WOW = { days, aStart, aEnd, bStart, bEnd };
+  document.getElementById('wow-a-start').value = aStart;
+  document.getElementById('wow-a-end').value = aEnd;
+  document.getElementById('wow-b-start').value = bStart;
+  document.getElementById('wow-b-end').value = bEnd;
+  renderWoW();
+}
+
+function applyWowPeriod() {
+  document.querySelectorAll('#wow-preset-btns .pbtn').forEach(b=>b.classList.remove('active'));
+  WOW.aStart = document.getElementById('wow-a-start').value;
+  WOW.aEnd   = document.getElementById('wow-a-end').value;
+  WOW.bStart = document.getElementById('wow-b-start').value;
+  WOW.bEnd   = document.getElementById('wow-b-end').value;
+  renderWoW();
+}
+
+function getWeekRows(rows, dateField, weeksBack=0) {
+  // Legacy — kept for compatibility
+  const dates = rows.map(r=>parseDate(r[dateField])).filter(d=>d&&!isNaN(d));
+  if(!dates.length) return [];
+  const maxDate = new Date(Math.max(...dates));
+  const end = new Date(maxDate.getTime() - weeksBack*7*86400000);
+  const start = new Date(end.getTime() - 6*86400000);
+  return rows.filter(r => { const d=parseDate(r[dateField]); return d&&d>=start&&d<=end; });
+}
+
+function wowDelta(curr, prev, higherIsBetter=true) {
+  if(!prev || prev===0) return null;
+  const delta = ((curr-prev)/prev)*100;
+  const isGood = higherIsBetter ? delta >= 0 : delta <= 0;
+  const sign = delta > 0 ? '+' : '';
+  return { text: `${sign}${f1(delta)}%`, good: isGood, delta };
+}
+
+function wowBadge(curr, prev, higherIsBetter=true) {
+  const d = wowDelta(curr, prev, higherIsBetter);
+  if(!d) return '<span class="wow-delta delta-neutral">—</span>';
+  const cls = d.good ? (d.delta>0?'delta-up-good':'delta-down-good') : (d.delta>0?'delta-up-bad':'delta-down-bad');
+  const arrow = d.delta > 0.1 ? '↑' : d.delta < -0.1 ? '↓' : '→';
+  return `<span class="wow-delta ${cls}">${arrow} ${d.text}</span>`;
+}
+
+// ── PERIOD ────────────────────────────────────────────────────────────────
+function getAllDates() {
+  return [...(DB.whatsapp||[]),...(DB.voz||[]),...(DB.ra||[]),...(DB.rs||[])]
+    .map(r=>r['Data']).filter(Boolean).map(parseDate).filter(d=>d&&!isNaN(d));
+}
+function setPreset(days,btn) {
+  document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const dates=getAllDates();
+  if(!dates.length) return;
+  const max=new Date(Math.max(...dates));
+  const start=days===0?new Date(Math.min(...dates)):new Date(max.getTime()-(days-1)*86400000);
+  PERIOD.start=start.toISOString().slice(0,10);
+  PERIOD.end=max.toISOString().slice(0,10);
+  document.getElementById('date-start').value=PERIOD.start;
+  document.getElementById('date-end').value=PERIOD.end;
+  renderCurrentTab();
+}
+function applyPeriod() {
+  PERIOD.start=document.getElementById('date-start').value;
+  PERIOD.end=document.getElementById('date-end').value;
+  document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));
+  renderCurrentTab();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+function initDashboard() {
+  document.getElementById('loader').style.display='none';
+  document.getElementById('dashboard').classList.remove('hidden');
+  document.getElementById('period-bar').style.display='flex';
+  document.getElementById('tabs').style.display='flex';
+  document.getElementById('data-badge').style.display='flex';
+  const dates=getAllDates();
+  if(dates.length){
+    const mn=new Date(Math.min(...dates)),mx=new Date(Math.max(...dates));
+    document.getElementById('badge-text').textContent=`${mn.toLocaleDateString('pt-BR')} — ${mx.toLocaleDateString('pt-BR')}`;
+  }
+  setPreset(15, document.querySelectorAll('.pbtn')[1]);
+  setWowPreset(7, null);
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function showTab(name,el) {
+  currentTab=name;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  ['geral','wow','whatsapp','voz','mktp','ra','rs'].forEach(t=>
+    document.getElementById(`tab-${t}`)?.classList.toggle('hidden',t!==name)
+  );
+  renderCurrentTab();
+}
+function renderCurrentTab() {
+  if(!DB.whatsapp) return;
+  ({geral:renderGeral,wow:renderWoW,whatsapp:renderWP,voz:renderVoz,mktp:renderMKTP,ra:renderRA,rs:renderRS})[currentTab]?.();
+}
+
+// ── CHART HELPERS ─────────────────────────────────────────────────────────
+const C={purple:'#6B21A8',blue:'#2563EB',green:'#16A34A',red:'#DC2626',orange:'#EA580C',pink:'#EC4899',teal:'#0891B2'};
+const PAL=Object.values(C);
+function mkChart(id,type,labels,datasets,opts={}) {
+  if(charts[id]) charts[id].destroy();
+  const ctx=document.getElementById(id)?.getContext('2d');
+  if(!ctx) return;
+  const font={family:'Plus Jakarta Sans'};
+  charts[id]=new Chart(ctx,{type,data:{labels,datasets},options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:!!opts.legend,position:'bottom',labels:{font:{...font,size:11},boxWidth:12}},
+      tooltip:{titleFont:font,bodyFont:font},
+    },
+    scales:(type==='bar'||type==='line')?{
+      x:{grid:{display:false},ticks:{font:{...font,size:11},color:'#A89CC8'}},
+      y:{grid:{color:'#F3F0F9'},ticks:{font:{...font,size:11},color:'#A89CC8'},beginAtZero:true,...(opts.yMax?{max:opts.yMax}:{})},
+      ...(opts.y2?{y2:{position:'right',grid:{display:false},ticks:{font:{...font,size:11},color:'#A89CC8'},beginAtZero:true}}:{})
+    }:{},
+    ...(opts.extra||{})
+  }});
+}
+function buildCards(id,cards) {
+  document.getElementById(id).innerHTML=cards.map(c=>`
+    <div class="card">
+      <div class="card-label">${c.label}</div>
+      <div class="card-value ${c.color||''}">${c.value}</div>
+      ${c.sub?`<div class="card-sub">${c.sub}</div>`:''}
+    </div>`).join('');
+}
+function buildTable(id,heads,rows) {
+  document.getElementById(id).innerHTML=
+    `<thead><tr>${heads.map(h=>`<th>${h}</th>`).join('')}</tr></thead>`+
+    `<tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c??'-'}</td>`).join('')}</tr>`).join('')}</tbody>`;
+}
+function repPill(v) {
+  if(!v) return '-';
+  const k=String(v).toLowerCase();
+  if(k.includes('excelente')) return `<span class="rep rep-excelente">${v}</span>`;
+  if(k.includes('ótimo')||k.includes('otimo')) return `<span class="rep rep-otimo">${v}</span>`;
+  if(k.includes('bom')) return `<span class="rep rep-bom">${v}</span>`;
+  if(k.includes('regular')) return `<span class="rep rep-regular">${v}</span>`;
+  if(k.includes('ruim')) return `<span class="rep rep-ruim">${v}</span>`;
+  return v;
+}
+function periodStr(rows,field) {
+  const f=rows.filter(r=>inPeriod(r[field]));
+  if(!f.length) return '';
+  const ds=f.map(r=>parseDate(r[field])).filter(d=>d&&!isNaN(d));
+  const mn=new Date(Math.min(...ds)),mx=new Date(Math.max(...ds));
+  return `${mn.toLocaleDateString('pt-BR')} — ${mx.toLocaleDateString('pt-BR')} · ${f.length} dias`;
+}
+
+// ── SAÚDE DA OPERAÇÃO ─────────────────────────────────────────────────────
+function renderGeral() {
+  const wp=(DB.whatsapp||[]).filter(r=>inPeriod(r['Data']));
+  const voz=(DB.voz||[]).filter(r=>inPeriod(r['Data']));
+  const ra=(DB.ra||[]).filter(r=>inPeriod(r['Data']));
+  const rs=(DB.rs||[]).filter(r=>inPeriod(r['Data']));
+  const mk=(DB.mktp||[]).filter(r=>inPeriod(r['Data']));
+
+  const wpV=sum(wp.map(r=>n(r['Volume de Entrada']))),
+        vozV=sum(voz.map(r=>n(r['Volume de Entrada']))),
+        raV=sum(ra.map(r=>n(r['Volume de Entrada']))),
+        rsV=sum(rs.map(r=>n(r['Volume de Entrada']))),
+        mkV=sum(mk.map(r=>n(r['Volume de Entrada']))),
+        tot=wpV+vozV+raV+rsV+mkV;
+
+  const wpC=avg(wp.map(r=>n(r['CSAT (%)']))),
+        vozC=avg(voz.map(r=>n(r['CSAT (%)'])));
+  const csatGeral=avg([...wp.map(r=>n(r['CSAT (%)'])),...voz.map(r=>n(r['CSAT (%)']))]);
+
+  document.getElementById('geral-period').textContent=periodStr(DB.whatsapp||[],'Data');
+
+  buildCards('geral-cards',[
+    {label:'Volume Total',value:tot.toLocaleString('pt-BR'),sub:'Todos os canais'},
+    {label:'CSAT Geral',value:fP(csatGeral),color:csatGeral>=85?'green':csatGeral>=70?'orange':'red',sub:'WA + Voz'},
+    {label:'CSAT WhatsApp',value:fP(wpC),color:wpC>=85?'green':wpC>=70?'orange':'red'},
+    {label:'CSAT Voz',value:fP(vozC),color:vozC>=85?'green':vozC>=70?'orange':'red'},
+    {label:'WhatsApp',value:wpV.toLocaleString('pt-BR'),sub:fP(tot>0?wpV/tot*100:0)+' do total'},
+    {label:'Voz',value:vozV.toLocaleString('pt-BR'),sub:fP(tot>0?vozV/tot*100:0)+' do total'},
+    {label:'Marketplace',value:mkV.toLocaleString('pt-BR'),sub:fP(tot>0?mkV/tot*100:0)+' do total'},
+    {label:'Reclame Aqui',value:raV.toLocaleString('pt-BR'),sub:fP(tot>0?raV/tot*100:0)+' do total'},
+  ]);
+
+  // Saúde por canal
+  const wpTMA=avg(wp.map(r=>n(r['TMA (min)']))), wpTME=avg(wp.map(r=>n(r['TME (min)'])));
+  const wpTr=sum(wp.map(r=>n(r['Volume de Transbordo']))), wpTrat=sum(wp.map(r=>n(r['Volume Tratados no Dia'])));
+  const vozAt=sum(voz.map(r=>n(r['Chamadas Atendidas']))), vozAb=avg(voz.map(r=>n(r['Taxa de Abandono (%)'])));
+  const vozTMA=avg(voz.map(r=>n(r['TMA (min)']))), vozTME=avg(voz.map(r=>n(r['TME (min)'])));
+  const raPct=avg(ra.map(r=>n(r['% Resolução']))), raTMA=avg(ra.map(r=>n(r['TMA (h)'])));
+  const rsPct=avg(rs.map(r=>n(r['% Tratados'])));
+  const mkPct=avg(mk.map(r=>n(r['% Tratados'])));
+
+  document.getElementById('saude-grid').innerHTML=`
+    <div class="saude-card">
+      <div class="saude-canal">💬 WhatsApp</div>
+      <div class="saude-metric"><span class="saude-metric-label">Volume Entrada</span><span class="saude-metric-value">${wpV.toLocaleString('pt-BR')}</span></div>
+      <div class="saude-metric"><span class="saude-metric-label">Tratados</span><span class="saude-metric-value ${wpV>0&&wpTrat/wpV>=.8?'green':'orange'}">${fP(wpV>0?wpTrat/wpV*100:0)}</span></div>
+      <div class="saude-metric"><span class="saude-metric-label">Transbordo</span><span class="saude-metric-value">${wpTr.toLocaleString('pt-BR')}</span></div>
+      <div class="saude-metric"><span class="saude-metric-label">CSAT</span><span class="saude-metric-value ${wpC>=85?'green':wpC>=70?'orange':'red'}">${fP(wpC)}</span></div>
+      <div class="saude-metric"><span class="saude-metric-label">TMA / TME</span><span class="saude-metric-value">${f1(wpTMA)}min / ${f1(wpTME)}min</span></div>
+    </div>
+    <div class="saude-card">
+      <div class="saude-canal">📞 Voz</div>
+      <div class="saude-metric"><span class="saude-metric-label">Volume Entrada</span><span class="saude-metric-value">${vozV.toLocaleString('pt-BR')}</span></div>
+      <div class="saude-metric"><span class="saude-metric-label">Atendidas</span><span class="saude-metric-value ${vozV>0&&vozAt/vozV>=.85?'green':'orange'}">${fP(vozV>0?vozAt/vozV*100:0)}</span></div>
+      <div class="saude-metric"><span class="saude-metric-label">Tx. Abandono</span><span class="saude-metric-value ${vozAb<=10?'green':vozAb<=20?'orange':'red'}">${fP(vozAb)}</span></div>
+      <div class="saude-metric"><span class="saude-metric-label">CSAT</span><span class="saude-metric-value ${vozC>=85?'green':vozC>=70?'orange':'red'}">${fP(vozC)}</span></div>
+      <div class="saude-metric"><span class="saude-metric-label">TMA / TME</span><span class="saude-metric-value">${f1(vozTMA)}min / ${f1(vozTME)}min</span></div>
+    </div>
+    <div class="saude-card">
+      <div class="saude-canal">⭐ Reclame Aqui</div>
+      <div class="saude-metric"><span class="saude-metric-label">Volume Entrada</span><span class="saude-metric-value">${raV.toLocaleString('pt-BR')}</span></div>
+      <div class="saude-metric"><span class="saude-metric-label">% Resolução</span><span class="saude-metric-value ${raPct>=85?'green':raPct>=70?'orange':'red'}">${fP(raPct)}</span></div>
+      <div class="saude-metric"><span class="saude-metric-label">TMA</span><span class="saude-metric-value">${f1(raTMA)}h</span></div>
+    </div>
+    <div class="saude-card">
+      <div class="saude-canal">📱 Redes Sociais</div>
+      <div class="saude-metric"><span class="saude-metric-label">Volume Entrada</span><span class="saude-metric-value">${rsV.toLocaleString('pt-BR')}</span></div>
+      <div class="saude-metric"><span class="saude-metric-label">% Tratados</span><span class="saude-metric-value ${rsPct>=80?'green':rsPct>=65?'orange':'red'}">${fP(rsPct)}</span></div>
+    </div>
+    <div class="saude-card">
+      <div class="saude-canal">🛒 Marketplace</div>
+      <div class="saude-metric"><span class="saude-metric-label">Volume Entrada</span><span class="saude-metric-value">${mkV.toLocaleString('pt-BR')}</span></div>
+      <div class="saude-metric"><span class="saude-metric-label">% Tratados</span><span class="saude-metric-value ${mkPct>=80?'green':mkPct>=65?'orange':'red'}">${fP(mkPct)}</span></div>
+    </div>
+  `;
+
+  mkChart('geral-canal','doughnut',['WhatsApp','Voz','Marketplace','RA','RS'],
+    [{data:[wpV,vozV,mkV,raV,rsV],backgroundColor:PAL.map(c=>c+'CC'),borderColor:PAL,borderWidth:2}],
+    {legend:true,extra:{cutout:'60%'}}
+  );
+  mkChart('geral-csat','bar',['WhatsApp','Voz'],
+    [{data:[wpC,vozC],backgroundColor:[C.purple+'80',C.blue+'80'],borderColor:[C.purple,C.blue],borderWidth:2,borderRadius:6}],
+    {yMax:100}
+  );
+
+  // Evolução
+  const allD=[...new Set([...wp,...voz].map(r=>r['Data']).filter(Boolean)
+    .map(d=>parseDate(d)).filter(d=>d&&!isNaN(d)).map(d=>d.toISOString().slice(0,10)))].sort();
+  const byDate=(rows,field,d)=>sum(rows.filter(r=>{const p=parseDate(r['Data']);return p&&p.toISOString().slice(0,10)===d;}).map(r=>n(r[field])));
+  mkChart('geral-evol','line',allD.map(fmtShort),[
+    {label:'WhatsApp',data:allD.map(d=>byDate(wp,'Volume de Entrada',d)),borderColor:C.purple,fill:false,tension:.3,pointRadius:2},
+    {label:'Voz',data:allD.map(d=>byDate(voz,'Volume de Entrada',d)),borderColor:C.blue,fill:false,tension:.3,pointRadius:2},
+  ],{legend:true});
+  mkChart('geral-evol-csat','line',allD.map(fmtShort),[
+    {label:'WA CSAT',data:allD.map(d=>avg(wp.filter(r=>{const p=parseDate(r['Data']);return p&&p.toISOString().slice(0,10)===d;}).map(r=>n(r['CSAT (%)'])))),borderColor:C.purple,fill:false,tension:.3,pointRadius:2},
+    {label:'Voz CSAT',data:allD.map(d=>avg(voz.filter(r=>{const p=parseDate(r['Data']);return p&&p.toISOString().slice(0,10)===d;}).map(r=>n(r['CSAT (%)'])))),borderColor:C.blue,fill:false,tension:.3,pointRadius:2},
+  ],{legend:true,yMax:100});
+}
+
+// ── WoW ───────────────────────────────────────────────────────────────────
+function renderWoW() {
+  // Use WOW state, fallback to 7 days if not set
+  if(!WOW.aStart) { setWowPreset(7, document.querySelector('#wow-preset-btns .pbtn')); return; }
+
+  const w0wp=getRowsInRange(DB.whatsapp||[],'Data',WOW.aStart,WOW.aEnd);
+  const w1wp=getRowsInRange(DB.whatsapp||[],'Data',WOW.bStart,WOW.bEnd);
+  const w0voz=getRowsInRange(DB.voz||[],'Data',WOW.aStart,WOW.aEnd);
+  const w1voz=getRowsInRange(DB.voz||[],'Data',WOW.bStart,WOW.bEnd);
+  const w0ra=getRowsInRange(DB.ra||[],'Data',WOW.aStart,WOW.aEnd);
+  const w1ra=getRowsInRange(DB.ra||[],'Data',WOW.bStart,WOW.bEnd);
+  const w0rs=getRowsInRange(DB.rs||[],'Data',WOW.aStart,WOW.aEnd);
+  const w1rs=getRowsInRange(DB.rs||[],'Data',WOW.bStart,WOW.bEnd);
+  const w0mk=getRowsInRange(DB.mktp||[],'Data',WOW.aStart,WOW.aEnd);
+  const w1mk=getRowsInRange(DB.mktp||[],'Data',WOW.bStart,WOW.bEnd);
+
+  const fD = d => new Date(d+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  const labelA = `${fD(WOW.aStart)} – ${fD(WOW.aEnd)}`;
+  const labelB = `${fD(WOW.bStart)} – ${fD(WOW.bEnd)}`;
+  document.getElementById('wow-period').textContent = `${labelB} vs ${labelA}`;
+
+  function wowBlock(title, metrics) {
+    return `
+      <div class="wow-item">
+        <div class="wow-item-label">${title}</div>
+        ${metrics.map(m=>`
+          <div class="wow-row">
+            <span style="font-size:12px;color:var(--text2)">${m.label}</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="wow-val">${m.curr}</span>
+              ${wowBadge(m.currRaw, m.prevRaw, m.higherGood!==false)}
+            </div>
+          </div>
+        `).join('')}
+        <div style="margin-top:6px;font-size:11px;color:var(--text3)">Período anterior: ${metrics.map(m=>`${m.label} ${m.prev}`).join(' · ')}</div>
+      </div>`;
+  }
+
+  const wpV0=sum(w0wp.map(r=>n(r['Volume de Entrada']))), wpV1=sum(w1wp.map(r=>n(r['Volume de Entrada'])));
+  const wpC0=avg(w0wp.map(r=>n(r['CSAT (%)']))), wpC1=avg(w1wp.map(r=>n(r['CSAT (%)'])));
+  const wpTMA0=avg(w0wp.map(r=>n(r['TMA (min)']))), wpTMA1=avg(w1wp.map(r=>n(r['TMA (min)'])));
+  const wpTr0=sum(w0wp.map(r=>n(r['Volume de Transbordo']))), wpTr1=sum(w1wp.map(r=>n(r['Volume de Transbordo'])));
+  const vozV0=sum(w0voz.map(r=>n(r['Volume de Entrada']))), vozV1=sum(w1voz.map(r=>n(r['Volume de Entrada'])));
+  const vozC0=avg(w0voz.map(r=>n(r['CSAT (%)']))), vozC1=avg(w1voz.map(r=>n(r['CSAT (%)'])));
+  const vozAb0=avg(w0voz.map(r=>n(r['Taxa de Abandono (%)']))), vozAb1=avg(w1voz.map(r=>n(r['Taxa de Abandono (%)'])));
+  const raV0=sum(w0ra.map(r=>n(r['Volume de Entrada']))), raV1=sum(w1ra.map(r=>n(r['Volume de Entrada'])));
+  const raP0=avg(w0ra.map(r=>n(r['% Resolução']))), raP1=avg(w1ra.map(r=>n(r['% Resolução'])));
+  const rsV0=sum(w0rs.map(r=>n(r['Volume de Entrada']))), rsV1=sum(w1rs.map(r=>n(r['Volume de Entrada'])));
+  const rsP0=avg(w0rs.map(r=>n(r['% Tratados']))), rsP1=avg(w1rs.map(r=>n(r['% Tratados'])));
+  const mkV0=sum(w0mk.map(r=>n(r['Volume de Entrada']))), mkV1=sum(w1mk.map(r=>n(r['Volume de Entrada'])));
+  const mkP0=avg(w0mk.map(r=>n(r['% Tratados']))), mkP1=avg(w1mk.map(r=>n(r['% Tratados'])));
+
+  document.getElementById('wow-content').innerHTML=`
+    <div class="wow-section">
+      <div class="wow-title">📊 Período A (atual) vs Período B (anterior)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;padding:12px;background:var(--surface2);border-radius:8px;">
+        <div style="font-size:12px;color:var(--text2)"><strong>Período A (atual):</strong> ${labelA}</div>
+        <div style="font-size:12px;color:var(--text2)"><strong>Período B (anterior):</strong> ${labelB}</div>
+      </div>
+      <div class="wow-grid">
+        ${wowBlock('💬 WhatsApp',[
+          {label:'Volume',curr:wpV0.toLocaleString('pt-BR'),prev:wpV1.toLocaleString('pt-BR'),currRaw:wpV0,prevRaw:wpV1,higherGood:false},
+          {label:'CSAT',curr:fP(wpC0),prev:fP(wpC1),currRaw:wpC0,prevRaw:wpC1},
+          {label:'TMA',curr:f1(wpTMA0)+'min',prev:f1(wpTMA1)+'min',currRaw:wpTMA0,prevRaw:wpTMA1,higherGood:false},
+          {label:'Transbordo',curr:wpTr0.toLocaleString('pt-BR'),prev:wpTr1.toLocaleString('pt-BR'),currRaw:wpTr0,prevRaw:wpTr1,higherGood:false},
+        ])}
+        ${wowBlock('📞 Voz',[
+          {label:'Volume',curr:vozV0.toLocaleString('pt-BR'),prev:vozV1.toLocaleString('pt-BR'),currRaw:vozV0,prevRaw:vozV1,higherGood:false},
+          {label:'CSAT',curr:fP(vozC0),prev:fP(vozC1),currRaw:vozC0,prevRaw:vozC1},
+          {label:'Tx.Abandono',curr:fP(vozAb0),prev:fP(vozAb1),currRaw:vozAb0,prevRaw:vozAb1,higherGood:false},
+        ])}
+        ${wowBlock('⭐ Reclame Aqui',[
+          {label:'Volume',curr:raV0.toLocaleString('pt-BR'),prev:raV1.toLocaleString('pt-BR'),currRaw:raV0,prevRaw:raV1,higherGood:false},
+          {label:'% Resolução',curr:fP(raP0),prev:fP(raP1),currRaw:raP0,prevRaw:raP1},
+        ])}
+        ${wowBlock('📱 Redes Sociais',[
+          {label:'Volume',curr:rsV0.toLocaleString('pt-BR'),prev:rsV1.toLocaleString('pt-BR'),currRaw:rsV0,prevRaw:rsV1,higherGood:false},
+          {label:'% Tratados',curr:fP(rsP0),prev:fP(rsP1),currRaw:rsP0,prevRaw:rsP1},
+        ])}
+        ${wowBlock('🛒 Marketplace',[
+          {label:'Volume',curr:mkV0.toLocaleString('pt-BR'),prev:mkV1.toLocaleString('pt-BR'),currRaw:mkV0,prevRaw:mkV1,higherGood:false},
+          {label:'% Tratados',curr:fP(mkP0),prev:fP(mkP1),currRaw:mkP0,prevRaw:mkP1},
+        ])}
+      </div>
+    </div>
+    <div class="charts">
+      <div class="chart-card"><div class="chart-title">Volume por Canal — A vs B</div><div class="chart-wrap"><canvas id="wow-vol"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">CSAT — WA e Voz — A vs B</div><div class="chart-wrap"><canvas id="wow-csat"></canvas></div></div>
+    </div>
+    <div class="charts">
+      <div class="chart-card"><div class="chart-title">Taxa de Abandono — Voz — A vs B</div><div class="chart-wrap"><canvas id="wow-ab"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">% Resolução — RA e RS — A vs B</div><div class="chart-wrap"><canvas id="wow-pct"></canvas></div></div>
+    </div>
+  `;
+
+  setTimeout(()=>{
+    mkChart('wow-vol','bar',['WhatsApp','Voz','RA','RS','MKTP'],[
+      {label:'Período B',data:[wpV1,vozV1,raV1,rsV1,mkV1],backgroundColor:C.purple+'40',borderColor:C.purple,borderWidth:1,borderRadius:4},
+      {label:'Período A',data:[wpV0,vozV0,raV0,rsV0,mkV0],backgroundColor:C.purple+'90',borderColor:C.purple,borderWidth:1,borderRadius:4},
+    ],{legend:true});
+    mkChart('wow-csat','bar',['WhatsApp','Voz'],[
+      {label:'Período B',data:[wpC1,vozC1],backgroundColor:C.blue+'40',borderColor:C.blue,borderWidth:1,borderRadius:4},
+      {label:'Período A',data:[wpC0,vozC0],backgroundColor:C.blue+'90',borderColor:C.blue,borderWidth:1,borderRadius:4},
+    ],{legend:true,yMax:100});
+    mkChart('wow-ab','bar',['Taxa Abandono %'],[
+      {label:'Período B',data:[vozAb1],backgroundColor:C.red+'40',borderColor:C.red,borderWidth:1,borderRadius:4},
+      {label:'Período A',data:[vozAb0],backgroundColor:C.red+'90',borderColor:C.red,borderWidth:1,borderRadius:4},
+    ],{legend:true,yMax:100});
+    mkChart('wow-pct','bar',['RA % Resolução','RS % Tratados'],[
+      {label:'Período B',data:[raP1,rsP1],backgroundColor:C.green+'40',borderColor:C.green,borderWidth:1,borderRadius:4},
+      {label:'Período A',data:[raP0,rsP0],backgroundColor:C.green+'90',borderColor:C.green,borderWidth:1,borderRadius:4},
+    ],{legend:true,yMax:100});
+  },100);
+}
+
+// ── WHATSAPP ──────────────────────────────────────────────────────────────
+function renderWP() {
+  const rows=(DB.whatsapp||[]).filter(r=>inPeriod(r['Data']));
+  document.getElementById('wp-period').textContent=periodStr(DB.whatsapp||[],'Data');
+  if(!rows.length) return buildCards('wp-cards',[{label:'Sem dados',value:'-'}]);
+
+  const e   = rows.map(r=>n(r['Volume de Entrada']));
+  const tr  = rows.map(r=>n(r['Volume de Transbordo']));
+  const t   = rows.map(r=>n(r['Volume Tratados no Dia']));
+  const tma = rows.map(r=>parseDuration(r['TMA (min)']));
+  const tme = rows.map(r=>parseDuration(r['TME (min)']));
+  const cs  = rows.map(r=>n(r['CSAT (%)']));
+  const bot = rows.map(r=>parsePct(r['Volume Resolvidas pelo BOT %']));
+  const lbl = rows.map(r=>fmtShort(r['Data']));
+
+  const tE=sum(e), tT=sum(t), tTr=sum(tr);
+  const pct=tE>0?tT/tE*100:0;
+  const avgBot=avg(bot), avgTMA=avg(tma), avgTME=avg(tme), avgCS=avg(cs);
+
+  buildCards('wp-cards',[
+    {label:'Total Entrada',value:tE.toLocaleString('pt-BR'),sub:`${rows.length} dias`},
+    {label:'Tratados',value:tT.toLocaleString('pt-BR'),sub:fP(pct)+' do total',color:pct>=80?'green':'orange'},
+    {label:'Transbordo',value:tTr.toLocaleString('pt-BR'),sub:fP(tE>0?tTr/tE*100:0)+' do total',color:'orange'},
+    {label:'BOT %',value:fP(avgBot),sub:'Resolvidas pelo BOT',color:avgBot>=40?'green':'orange'},
+    {label:'CSAT Médio',value:fP(avgCS),color:avgCS>=85?'green':avgCS>=70?'orange':'red'},
+    {label:'TMA Médio',value:fmtDuration(avgTMA)},
+    {label:'TME Médio',value:fmtDuration(avgTME)},
+  ]);
+
+  mkChart('wp-vol','bar',lbl,[{data:e,backgroundColor:C.purple+'40',borderColor:C.purple,borderWidth:2,borderRadius:4}]);
+  mkChart('wp-csat','line',lbl,[{data:cs,borderColor:C.green,backgroundColor:C.green+'20',fill:true,tension:.4,pointRadius:3}],{yMax:100});
+  mkChart('wp-tma','line',lbl,[
+    {label:'TMA',data:tma,borderColor:C.purple,fill:false,tension:.4,pointRadius:3},
+    {label:'TME',data:tme,borderColor:C.orange,fill:false,tension:.4,pointRadius:3},
+  ],{legend:true});
+  mkChart('wp-trans','bar',lbl,[
+    {label:'Tratados',data:t,backgroundColor:C.green+'60',borderColor:C.green,borderWidth:1,borderRadius:3},
+    {label:'Transbordo',data:tr,backgroundColor:C.orange+'60',borderColor:C.orange,borderWidth:1,borderRadius:3},
+  ],{legend:true});
+
+  // BOT % evolução
+  mkChart('wp-bot','line',lbl,[{data:bot,borderColor:C.teal,backgroundColor:C.teal+'20',fill:true,tension:.4,pointRadius:3,label:'BOT %'}],{yMax:100});
+
+  // Ofensores — contagem de cada motivo
+  const countBy = (field) => {
+    const counts = {};
+    rows.forEach(r => {
+      const v = (r[field]||'').trim();
+      if(v) counts[v] = (counts[v]||0) + 1;
+    });
+    return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  };
+  const entrega = countBy('Ofensores Principais - Entrega');
+  const cancel  = countBy('Ofensores Principais - Cancelamento');
+  const allMotivos = [...new Set([...entrega.map(x=>x[0]),...cancel.map(x=>x[0])])];
+  const mMap = o => Object.fromEntries(o);
+  mkChart('wp-ofensores','bar', allMotivos,[
+    {label:'Entrega',   data:allMotivos.map(m=>mMap(entrega)[m]||0),  backgroundColor:C.orange+'80',borderColor:C.orange,borderWidth:1,borderRadius:4},
+    {label:'Cancelamento',data:allMotivos.map(m=>mMap(cancel)[m]||0), backgroundColor:C.red+'80',   borderColor:C.red,   borderWidth:1,borderRadius:4},
+  ],{legend:true});
+
+  buildTable('wp-table',
+    ['Data','Entrada','Transbordo','Tratados','% Tratados','BOT %','TMA','TME','CSAT','Ofensor Entrega','Ofensor Cancelamento'],
+    rows.map(r=>[
+      fmtFull(r['Data']),
+      r['Volume de Entrada'],
+      r['Volume de Transbordo'],
+      r['Volume Tratados no Dia'],
+      fP(n(r['Volume de Entrada'])>0 ? n(r['Volume Tratados no Dia'])/n(r['Volume de Entrada'])*100 : 0),
+      r['Volume Resolvidas pelo BOT %']||'-',
+      r['TMA (min)']||'-',
+      r['TME (min)']||'-',
+      fP(n(r['CSAT (%)'])),
+      r['Ofensores Principais - Entrega']||'-',
+      r['Ofensores Principais - Cancelamento']||'-',
+    ])
+  );
+}
+
+// ── VOZ ───────────────────────────────────────────────────────────────────
+function renderVoz() {
+  const rows=(DB.voz||[]).filter(r=>inPeriod(r['Data']));
+  document.getElementById('voz-period').textContent=periodStr(DB.voz||[],'Data');
+  if(!rows.length) return buildCards('voz-cards',[{label:'Sem dados',value:'-'}]);
+  const e=rows.map(r=>n(r['Volume de Entrada'])),at=rows.map(r=>n(r['Chamadas Atendidas'])),
+        ab=rows.map(r=>n(r['Chamadas Abandonadas'])),tx=rows.map(r=>n(r['Taxa de Abandono (%)'])),
+        tma=rows.map(r=>n(r['TMA (min)'])),tme=rows.map(r=>n(r['TME (min)'])),
+        cs=rows.map(r=>n(r['CSAT (%)'])),lbl=rows.map(r=>fmtShort(r['Data']));
+  const tE=sum(e),tA=sum(at);
+  buildCards('voz-cards',[
+    {label:'Total Ligações',value:tE.toLocaleString('pt-BR'),sub:`${rows.length} dias`},
+    {label:'Atendidas',value:tA.toLocaleString('pt-BR'),sub:fP(tE>0?tA/tE*100:0)+' do total',color:'green'},
+    {label:'Abandonadas',value:sum(ab).toLocaleString('pt-BR'),sub:fP(avg(tx))+' tx. média',color:'red'},
+    {label:'CSAT Médio',value:fP(avg(cs)),color:avg(cs)>=85?'green':avg(cs)>=70?'orange':'red'},
+    {label:'TMA Médio',value:f1(avg(tma))+' min'},
+    {label:'TME Médio',value:f1(avg(tme))+' min'},
+  ]);
+  mkChart('voz-vol','bar',lbl,[
+    {label:'Atendidas',data:at,backgroundColor:C.green+'60',borderColor:C.green,borderWidth:1,borderRadius:3},
+    {label:'Abandonadas',data:ab,backgroundColor:C.red+'60',borderColor:C.red,borderWidth:1,borderRadius:3},
+  ],{legend:true});
+  mkChart('voz-ab','line',lbl,[{data:tx,borderColor:C.red,backgroundColor:C.red+'20',fill:true,tension:.4,pointRadius:3}]);
+  mkChart('voz-tma','line',lbl,[
+    {label:'TMA',data:tma,borderColor:C.purple,fill:false,tension:.4,pointRadius:3},
+    {label:'TME',data:tme,borderColor:C.orange,fill:false,tension:.4,pointRadius:3},
+  ],{legend:true});
+  mkChart('voz-csat','line',lbl,[{data:cs,borderColor:C.green,backgroundColor:C.green+'20',fill:true,tension:.4,pointRadius:3}],{yMax:100});
+  buildTable('voz-table',['Data','Entrada','Atendidas','Abandonadas','Tx.Abandono','TMA','TME','CSAT'],
+    rows.map(r=>[fmtFull(r['Data']),r['Volume de Entrada'],r['Chamadas Atendidas'],r['Chamadas Abandonadas'],
+      fP(n(r['Taxa de Abandono (%)'])),r['TMA (min)'],r['TME (min)'],fP(n(r['CSAT (%)']))])
+  );
+}
+
+// ── MKTP ──────────────────────────────────────────────────────────────────
+function renderMKTP() {
+  const all=(DB.mktp||[]).filter(r=>inPeriod(r['Data']));
+  document.getElementById('mktp-period').textContent=periodStr(DB.mktp||[],'Data');
+  if(!all.length) return buildCards('mktp-cards',[{label:'Sem dados',value:'-'}]);
+  const lojas=['Todas',...new Set(all.map(r=>r['Loja']).filter(Boolean))];
+  document.getElementById('mktp-loja-tabs').innerHTML=
+    lojas.map(l=>`<button class="loja-btn ${l===mktpLojaAtiva?'active':''}" onclick="setMktpLoja('${l}')">${l}</button>`).join('');
+  const rows=mktpLojaAtiva==='Todas'?all:all.filter(r=>r['Loja']===mktpLojaAtiva);
+  const e=rows.map(r=>n(r['Volume de Entrada'])),t=rows.map(r=>n(r['Volume Tratados no Dia'])),p=rows.map(r=>n(r['% Tratados']));
+  buildCards('mktp-cards',[
+    {label:'Total Entrada',value:sum(e).toLocaleString('pt-BR')},
+    {label:'Total Tratados',value:sum(t).toLocaleString('pt-BR'),color:'green'},
+    {label:'% Tratados Médio',value:fP(avg(p)),color:avg(p)>=80?'green':'orange'},
+    {label:'Lojas',value:lojas.length-1},
+  ]);
+  if(mktpLojaAtiva==='Todas'){
+    const ln=lojas.slice(1);
+    mkChart('mktp-vol','bar',ln,[{data:ln.map(l=>sum(all.filter(r=>r['Loja']===l).map(r=>n(r['Volume de Entrada'])))),backgroundColor:PAL.map(c=>c+'80'),borderColor:PAL,borderWidth:2,borderRadius:6}]);
+    mkChart('mktp-pct','bar',ln,[{data:ln.map(l=>avg(all.filter(r=>r['Loja']===l).map(r=>n(r['% Tratados'])))),backgroundColor:PAL.map(c=>c+'80'),borderColor:PAL,borderWidth:2,borderRadius:6}],{yMax:100});
+  } else {
+    const lbl=rows.map(r=>fmtShort(r['Data']));
+    mkChart('mktp-vol','bar',lbl,[{data:e,backgroundColor:C.purple+'60',borderColor:C.purple,borderWidth:1,borderRadius:3}]);
+    mkChart('mktp-pct','line',lbl,[{data:p,borderColor:C.green,backgroundColor:C.green+'20',fill:true,tension:.4,pointRadius:3}],{yMax:100});
+  }
+  buildTable('mktp-table',['Data','Loja','Entrada','Tratados','% Tratados','Reputação'],
+    rows.map(r=>[fmtFull(r['Data']),r['Loja'],r['Volume de Entrada'],r['Volume Tratados no Dia'],fP(n(r['% Tratados'])),repPill(r['Reputação da Loja'])])
+  );
+}
+function setMktpLoja(l){mktpLojaAtiva=l;renderMKTP();}
+
+// ── RA ────────────────────────────────────────────────────────────────────
+function renderRA() {
+  const rows=(DB.ra||[]).filter(r=>inPeriod(r['Data']));
+  document.getElementById('ra-period').textContent=periodStr(DB.ra||[],'Data');
+  if(!rows.length) return buildCards('ra-cards',[{label:'Sem dados',value:'-'}]);
+  const e=rows.map(r=>n(r['Volume de Entrada'])),res=rows.map(r=>n(r['Volume Resolvidas'])),
+        p=rows.map(r=>n(r['% Resolução'])),tma=rows.map(r=>n(r['TMA (h)'])),
+        tme=rows.map(r=>n(r['TME (h)'])),lbl=rows.map(r=>fmtShort(r['Data']));
+  buildCards('ra-cards',[
+    {label:'Total Entrada',value:sum(e).toLocaleString('pt-BR')},
+    {label:'Resolvidas',value:sum(res).toLocaleString('pt-BR'),color:'green'},
+    {label:'% Resolução',value:fP(avg(p)),color:avg(p)>=85?'green':'orange'},
+    {label:'TMA Médio',value:f1(avg(tma))+'h'},
+    {label:'TME Médio',value:f1(avg(tme))+'h'},
+  ]);
+  mkChart('ra-vol','bar',lbl,[
+    {label:'Entrada',data:e,backgroundColor:C.red+'40',borderColor:C.red,borderWidth:1,borderRadius:3},
+    {label:'Resolvidas',data:res,backgroundColor:C.green+'60',borderColor:C.green,borderWidth:1,borderRadius:3},
+  ],{legend:true});
+  mkChart('ra-pct','line',lbl,[{data:p,borderColor:C.green,backgroundColor:C.green+'20',fill:true,tension:.4,pointRadius:3}],{yMax:100});
+  const sem=DB.raSemanal||[];
+  if(sem.length){
+    const rN=v=>({'Ruim':1,'Regular':2,'Bom':3,'Ótimo':4,'Excelente':5}[v]||0);
+    const rC=v=>({'Ruim':C.red,'Regular':C.orange,'Bom':C.blue,'Ótimo':C.green,'Excelente':C.purple}[v]||'#999');
+    mkChart('ra-sem','bar',sem.map(r=>fmtShort(r['Semana (Início)'])),
+      [{data:sem.map(r=>rN(r['Reputação Semanal'])),backgroundColor:sem.map(r=>rC(r['Reputação Semanal'])+'CC'),borderColor:sem.map(r=>rC(r['Reputação Semanal'])),borderWidth:1,borderRadius:4}],{yMax:5}
+    );
+  }
+  const men=DB.raMensal||[];
+  if(men.length){
+    mkChart('ra-men','line',men.map(r=>String(r['Mês/Ano']||'')),[
+      {label:'Nota Média',data:men.map(r=>n(r['Nota Média'])),borderColor:C.purple,fill:false,tension:.3,pointRadius:4},
+      {label:'% Resolução',data:men.map(r=>n(r['% Resolução'])),borderColor:C.green,fill:false,tension:.3,pointRadius:4,yAxisID:'y2'},
+    ],{legend:true,y2:true});
+  }
+  buildTable('ra-table',['Data','Entrada','Resolvidas','% Resolução','TMA (h)','TME (h)','Ofensores'],
+    rows.map(r=>[fmtFull(r['Data']),r['Volume de Entrada'],r['Volume Resolvidas'],fP(n(r['% Resolução'])),r['TMA (h)'],r['TME (h)'],r['Ofensores Principais']||'-'])
+  );
+}
+
+// ── RS ────────────────────────────────────────────────────────────────────
+function renderRS() {
+  const rows=(DB.rs||[]).filter(r=>inPeriod(r['Data']));
+  document.getElementById('rs-period').textContent=periodStr(DB.rs||[],'Data');
+  if(!rows.length) return buildCards('rs-cards',[{label:'Sem dados',value:'-'}]);
+  const e=rows.map(r=>n(r['Volume de Entrada'])),t=rows.map(r=>n(r['Volume Tratados no Dia'])),p=rows.map(r=>n(r['% Tratados'])),lbl=rows.map(r=>fmtShort(r['Data']));
+  buildCards('rs-cards',[
+    {label:'Total Entrada',value:sum(e).toLocaleString('pt-BR'),sub:`${rows.length} dias`},
+    {label:'Tratados',value:sum(t).toLocaleString('pt-BR'),color:'green'},
+    {label:'% Tratados',value:fP(avg(p)),color:avg(p)>=80?'green':'orange'},
+    {label:'Dias',value:rows.length},
+  ]);
+  mkChart('rs-vol','bar',lbl,[{data:e,backgroundColor:C.purple+'60',borderColor:C.purple,borderWidth:1,borderRadius:4}]);
+  mkChart('rs-pct','line',lbl,[{data:p,borderColor:C.green,backgroundColor:C.green+'20',fill:true,tension:.4,pointRadius:3}],{yMax:100});
+  buildTable('rs-table',['Data','Entrada','Tratados','% Tratados'],
+    rows.map(r=>[fmtFull(r['Data']),r['Volume de Entrada'],r['Volume Tratados no Dia'],fP(n(r['% Tratados']))])
+  );
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3000);}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────
+window.onload=()=>loadAll();
+</script>
+</body>
+</html>
